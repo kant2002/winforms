@@ -214,12 +214,14 @@ namespace System.Windows.Forms
                     IntPtr.Zero,
                     Ole32.CLSCTX.INPROC_SERVER | Ole32.CLSCTX.LOCAL_SERVER | Ole32.CLSCTX.REMOTE_SERVER,
                     ref NativeMethods.ActiveX.IID_IUnknown,
-                    out object obj);
+                    out IntPtr lpDialogUnknownPtr);
                 if (!hr.Succeeded())
                 {
                     Marshal.ThrowExceptionForHR((int)hr);
                 }
 
+                var obj = WinFormsComWrappers.Instance
+                    .GetOrCreateObjectForComInstance(lpDialogUnknownPtr, CreateObjectFlags.UniqueInstance);
                 dialog = (IFileOpenDialog)obj;
             }
             catch (COMException)
@@ -249,10 +251,7 @@ namespace System.Windows.Forms
             }
             finally
             {
-                if (dialog != null)
-                {
-                    Marshal.FinalReleaseComObject(dialog);
-                }
+                ((IDisposable)dialog).Dispose();
             }
         }
 
